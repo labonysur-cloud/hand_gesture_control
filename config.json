@@ -1,0 +1,19 @@
+{
+  "smoothening": 7,
+  "click_distance": 35,
+  "double_click_window": 0.4,
+  "action_cooldown": 1.8,
+  "scroll_sensitivity": 300,
+  "volume_sensitivity": 0.035,
+  "brightness_sensitivity": 0.04,
+  "hold_frames": 18,
+  "drag_move_threshold": 2.0,
+  "swipe_threshold": 0.18,
+  "swipe_vertical_threshold": 0.15,
+  "webcam_width": 1280,
+  "webcam_height": 720,
+  "active_zone_margin": 0.15,
+  "camera_index": 0,
+  "min_detection_confidence": 0.6,
+  "min_tracking_confidence": 0.6
+}

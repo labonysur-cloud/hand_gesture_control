@@ -2,13 +2,14 @@
 
 <h1>🖐️ Hand Gesture Control for Windows</h1>
 
-<p><strong>Control your entire Windows PC — mouse, volume, brightness, media, apps, camera, and more — using only your hand in front of a webcam. No hardware required.</strong></p>
+<p><strong>Control your entire Windows PC — mouse, drag & drop, volume, brightness, media, windows, apps, camera and more — using only your hand in front of a webcam. No extra hardware required.</strong></p>
 
 <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+<img src="https://img.shields.io/badge/Version-2.0-FF6F00?style=for-the-badge"/>
 <img src="https://img.shields.io/badge/MediaPipe-Tasks%20API-FF6F00?style=for-the-badge&logo=google&logoColor=white"/>
 <img src="https://img.shields.io/badge/OpenCV-4.x-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white"/>
 <img src="https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6?style=for-the-badge&logo=windows&logoColor=white"/>
-<img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge"/>
 
 </div>
 
@@ -17,15 +18,16 @@
 ## 📌 Table of Contents
 
 - [Overview](#-overview)
+- [What's New in v2.0](#-whats-new-in-v20)
 - [Features](#-features)
-- [Gesture Reference Card](#-gesture-reference-card)
+- [Full Gesture Reference](#-full-gesture-reference)
 - [System Architecture](#-system-architecture)
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
 - [Installation](#-installation)
 - [Running the Controller](#-running-the-controller)
+- [Configuration](#-configuration-configjson)
 - [How It Works — Technical Deep Dive](#-how-it-works--technical-deep-dive)
-- [Tuning & Configuration](#-tuning--configuration)
 - [Troubleshooting](#-troubleshooting)
 - [Roadmap](#-roadmap)
 - [License](#-license)
@@ -34,13 +36,37 @@
 
 ## 🌟 Overview
 
-**Hand Gesture Control for Windows** is a real-time, AI-powered application that transforms your laptop webcam into a touchless input device. It uses Google's **MediaPipe Hand Landmarker** to detect and track 21 3D key-points on your hand at up to 30 fps, then intelligently maps specific hand shapes and movements to Windows OS actions.
+**Hand Gesture Control for Windows** is a real-time, AI-powered application that turns your laptop webcam into a touchless input device. It uses Google's **MediaPipe Hand Landmarker** (Tasks API) to detect 21 3D key-points on your hand at up to 30 fps, then maps specific hand shapes and movements to Windows OS actions.
 
-The system is designed to be:
-- **Reliable** – gesture triggers require a sustained hold to prevent accidental activations
-- **Responsive** – mouse cursor movement uses exponential smoothing for jitter-free control
-- **Intuitive** – gestures map naturally to their real-world counterparts (pinch to click, swipe to navigate)
-- **Non-invasive** – runs entirely on your CPU with no cloud calls, no external hardware, no drivers
+Design goals:
+- **Reliable** — gestures require a sustained hold to prevent accidental activations
+- **Responsive** — exponential cursor smoothing + angle-based finger detection
+- **Comprehensive** — 20+ distinct gesture actions covering every day workflow
+- **Configurable** — all tuning parameters in a single `config.json`
+- **Private** — runs 100% offline on your CPU, no cloud calls, no drivers
+
+---
+
+## 🆕 What's New in v2.0
+
+| Feature | Description |
+|---|---|
+| **Drag & Drop** | Pinch + move to drag files, windows, and UI elements |
+| **Angle-based finger detection** | More accurate bent-finger detection using PIP joint angles |
+| **Mute Toggle** | Pinky-only gesture instantly mutes/unmutes system audio |
+| **Minimize Window** | Ring + Pinky gesture minimizes the active window |
+| **Maximize / Restore** | Middle + Ring + Pinky maximizes or restores the active window |
+| **Show Desktop** | Open palm swipe UP → Win+D |
+| **Task View** | Thumb + Index + Pinky → Win+Tab |
+| **Virtual Desktop Switch** | Open palm swipe DOWN → next virtual desktop |
+| **Lock Screen** | Stationary open palm held for 1.2s → Win+L |
+| **Pause / Resume ALL** | Hold a fist for 1.2s to freeze/unfreeze the entire controller |
+| **Proportional Scrolling** | Scroll speed is proportional to how fast you move |
+| **Screenshot via stability** | Two-finger peace sign: moving = scroll, stationary = screenshot |
+| **`config.json`** | All sensitivity values in one file — no code editing needed |
+| **Coloured skeleton overlay** | Each finger is drawn in its own colour, extended vs bent |
+| **Mode badge** | Corner badge always shows current gesture mode |
+| **Hold progress bar** | Yellow bar fills as you hold a launcher gesture |
 
 ---
 
@@ -48,111 +74,133 @@ The system is designed to be:
 
 | Category | Capabilities |
 |---|---|
-| 🖱️ **Mouse** | Move, Left Click, Double Click, Right Click |
-| 📜 **Scrolling** | Continuous scroll up / down |
+| 🖱️ **Mouse** | Move, Left Click, Double Click, Right Click, **Drag & Drop** |
+| 📜 **Scroll** | Proportional continuous scroll up / down |
 | 🔊 **Volume** | Step up / step down |
-| ☀️ **Brightness** | Step up / step down (on supported laptops) |
+| 🔇 **Mute** | Toggle mute with pinky gesture |
+| ☀️ **Brightness** | Step up / step down (supported laptops) |
 | ⏯️ **Media** | Play / Pause toggle |
 | 🌐 **Browser** | Back / Forward navigation |
-| 📁 **File Explorer** | Launch with a thumbs-up |
-| 🧮 **Calculator** | Launch with three fingers |
-| 📹 **Video Recording** | Start & stop recording direct from webcam |
-| 📸 **Photo Capture** | Snap a photo saved directly to `~/Pictures` |
-| 🖼️ **Screenshot** | Full-screen screenshot saved to `~/Pictures` |
+| 🖥️ **Window Management** | Minimize, Maximize/Restore, Show Desktop, Task View |
+| 🗂️ **Virtual Desktops** | Switch to next virtual desktop |
+| 🔒 **Lock Screen** | Lock Windows instantly |
+| 📁 **File Explorer** | Open with thumbs-up |
+| 🧮 **Calculator** | Open with three fingers |
+| 📹 **Video Recording** | Start/stop recording from webcam — saved to `~/Pictures` |
+| 📸 **Photo Capture** | OK sign → photo saved to `~/Pictures` |
+| 🖼️ **Screenshot** | Peace sign (stationary) → screenshot saved to `~/Pictures` |
+| ⏸️ **Pause Mode** | Hold fist to freeze all gestures when you need your hands free |
 
 ---
 
-## 🤌 Gesture Reference Card
+## 🤌 Full Gesture Reference
 
-> **Hold gestures** (app launchers, photo, screenshot, record) require you to hold the pose steady for **~0.6 seconds**. A yellow progress bar appears at the bottom of the preview window.
+> **Hold gestures** require the pose held steady for **~0.6 s** (`HOLD_FRAMES = 18` frames).  
+> A **yellow progress bar** appears at the bottom of the preview window while building up.
 
 ### 🖱️ Mouse & Navigation
 
-| Gesture | Shape | Action |
+| Gesture | Hand Shape | Action |
 |---|---|---|
-| **Index finger up** | ☝️ Only index extended | **Move cursor** (follows fingertip) |
-| **Pinch** Index + Thumb | Touch index tip to thumb tip | **Left click** |
-| **Double Pinch** | Two fast pinches | **Double click** (opens files/folders) |
-| **Pinch** Middle + Thumb | Touch middle tip to thumb tip | **Right click** |
-| **Two fingers up** | ✌️ Index + Middle up | **Scroll** (move hand up = scroll up) |
+| **Move cursor** | ☝ Index finger only | Cursor follows fingertip smoothly |
+| **Left click** | Pinch index + thumb | Quick pinch-release |
+| **Double click** | Two fast pinches | Second pinch within 0.4 s |
+| **Drag & Drop** | Pinch + move hand | Hold pinch and move to drag |
+| **Drop** | Release pinch | Releases drag |
+| **Right click** | Pinch middle + thumb | Single pinch |
+| **Scroll** | ✌ Index + Middle, hand moving | Move hand up = scroll up |
 
 ### ⚙️ System Controls
 
-| Gesture | Shape | Action |
+| Gesture | Hand Shape | Action |
 |---|---|---|
-| **Shaka** sign | 🤙 Thumb + Pinky only | **Volume** (move hand up/down) |
-| **Four fingers** | Index+Middle+Ring+Pinky, thumb folded | **Brightness** (move hand up/down) |
+| **Volume** | 🤙 Shaka (Thumb + Pinky) | Move hand up = louder |
+| **Brightness** | 4 fingers (thumb folded) | Move hand up = brighter |
+| **Mute Toggle** | 🤙 Pinky only (hold ~0.6s) | Toggles system mute |
+
+### 🖥️ Window Management
+
+| Gesture | Hand Shape | Action |
+|---|---|---|
+| **Minimize** | Ring + Pinky only (hold) | Win + Down |
+| **Maximize / Restore** | Middle + Ring + Pinky (hold) | Win + Up |
+| **Show Desktop** | 🖐 Open palm, swipe UP | Win + D |
+| **Task View** | Thumb + Index + Pinky (hold) | Win + Tab |
+| **Next Virtual Desktop** | 🖐 Open palm, swipe DOWN | Ctrl + Win + Right |
 
 ### 🎬 Media & Browser
 
-| Gesture | Shape | Action |
+| Gesture | Hand Shape | Action |
 |---|---|---|
-| **Fist** | ✊ All fingers closed (hold ~0.6s) | **Play / Pause** media |
-| **Open palm + swipe left** | 🖐 All 5 fingers, swipe left | **Browser Back** |
-| **Open palm + swipe right** | 🖐 All 5 fingers, swipe right | **Browser Forward** |
+| **Play / Pause** | ✊ Fist (hold ~0.6s) | Media play/pause key |
+| **Browser Back** | 🖐 Open palm, swipe LEFT | Alt + Left |
+| **Browser Forward** | 🖐 Open palm, swipe RIGHT | Alt + Right |
 
 ### 🚀 App Launchers & Utilities (Hold ~0.6s)
 
-| Gesture | Shape | Action |
+| Gesture | Hand Shape | Action |
 |---|---|---|
-| **Thumbs Up** | 👍 Fist with thumb pointing up | **Open File Explorer** |
-| **Three fingers** | Index + Middle + Ring up | **Open Calculator** |
-| **L-shape** | Thumb + Index spread wide (>90px) | **Start / Stop Video Recording** |
-| **Peace sign** | ✌️ Index + Middle, thumb folded | **Take Screenshot** → `~/Pictures` |
-| **OK sign** | 👌 Middle+Ring+Pinky up, thumb+index touch | **Take Photo** → `~/Pictures` |
+| **File Explorer** | 👍 Thumb pointing UP | Opens Explorer |
+| **Calculator** | Index + Middle + Ring | Opens Calc |
+| **Record / Stop** | L-shape (thumb + index wide) | Toggles webcam recording |
+| **Screenshot** | ✌ Peace sign, hand **still** | Saves PNG to `~/Pictures` |
+| **Take Photo** | 👌 OK sign | Saves JPG to `~/Pictures` |
+| **Lock Screen** | 🖐 Open palm, **held completely still** (1.2s) | Win + L |
 
-### ⌨️ Other
+### 🔧 System
 
-| Key | Action |
+| Gesture / Key | Action |
 |---|---|
-| `Q` | Quit the controller |
+| **Hold Fist for 1.2s** | Pause / Resume ALL gestures |
+| **Press `Q`** in preview window | Quit the controller cleanly |
 
 ---
 
 ## 🏗️ System Architecture
 
 ```
-┌───────────────────────────────────────────────────────────┐
-│                    gesture_controller.py                  │
-│                                                           │
-│  ┌─────────────┐    ┌──────────────────┐    ┌──────────┐ │
-│  │  Webcam     │───▶│  MediaPipe Hand  │───▶│ Gesture  │ │
-│  │  (OpenCV)   │    │  Landmarker      │    │ Engine   │ │
-│  │  1280×720   │    │  21 3D keypoints │    │          │ │
-│  └─────────────┘    └──────────────────┘    └────┬─────┘ │
-│                                                   │       │
-│         ┌─────────────────────────────────────────┤       │
-│         │              Gesture Engine             │       │
-│         │                                         │       │
-│         │  ┌──────────┐  ┌──────────┐  ┌───────┐ │       │
-│         │  │ Finger   │  │ Swipe    │  │ Hold  │ │       │
-│         │  │ Status   │  │ Detector │  │ Timer │ │       │
-│         │  └────┬─────┘  └────┬─────┘  └───┬───┘ │       │
-│         └───────┼─────────────┼─────────────┼─────┘       │
-│                 ▼             ▼             ▼             │
-│         ┌───────────────────────────────────────┐         │
-│         │            Action Dispatcher          │         │
-│         └───┬───────┬────────┬────────┬─────────┘         │
-│             ▼       ▼        ▼        ▼                   │
-│        PyAutoGUI  WinAPI  OpenCV  Subprocess              │
-│        (mouse,   (bright) (photo,  (explorer,             │
-│        keyboard)          video)   calc, etc.)            │
-└───────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│                     gesture_controller.py  v2.0                   │
+│                                                                   │
+│  ┌──────────────┐    ┌──────────────────┐    ┌────────────────┐  │
+│  │  Webcam Feed │───▶│  MediaPipe Hand  │───▶│  Finger Status │  │
+│  │  (OpenCV)    │    │  Landmarker      │    │  (angle-based) │  │
+│  │  1280×720    │    │  21 3D keypoints │    └───────┬────────┘  │
+│  └──────────────┘    └──────────────────┘            │           │
+│                                                       ▼           │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │                     Gesture Engine                         │  │
+│  │                                                            │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │  │
+│  │  │  Pinch   │  │  Swipe   │  │  Hold    │  │ Stable   │  │  │
+│  │  │ Detector │  │ Detector │  │  Timer   │  │ Checker  │  │  │
+│  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘  │  │
+│  └───────┼─────────────┼─────────────┼──────────────┼─────────┘  │
+│          ▼             ▼             ▼              ▼             │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │                   Action Dispatcher                       │    │
+│  └────┬──────────┬──────────┬──────────┬──────────┬─────────┘    │
+│       ▼          ▼          ▼          ▼          ▼              │
+│  PyAutoGUI   WMI/SBC    OpenCV     Subprocess   Win32 Keys       │
+│  (mouse,    (bright-  (photo,    (explorer,   (Win+D/L/Tab       │
+│  keyboard,   ness)     video)     calc, etc)   Alt+Left etc)     │
+│  screenshot)                                                      │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 🧰 Tech Stack
 
-| Library | Version | Purpose |
-|---|---|---|
-| `mediapipe` | 0.10.x | AI hand landmark detection (21 3D points per hand) |
-| `opencv-python` | 4.x | Webcam capture, frame processing, skeleton overlay, video writing |
-| `pyautogui` | latest | Mouse movement, keyboard simulation, screenshots |
-| `screen-brightness-control` | latest | Software brightness control via WMI (Windows) |
-| `numpy` | latest | Array operations for coordinate math |
+| Library | Purpose |
+|---|---|
+| `mediapipe 0.10.x` | AI hand landmark detection (21 3D points, Tasks API) |
+| `opencv-python 4.x` | Webcam capture, frame processing, skeleton drawing, video writing |
+| `pyautogui` | Mouse, keyboard, screenshot control |
+| `screen-brightness-control` | Software brightness via WMI (Windows laptop displays) |
+| `numpy` | Coordinate math |
 
-**AI Model:** `hand_landmarker.task` (float16, ~7.5 MB) — downloaded automatically on first run from Google's MediaPipe model repository.
+**AI Model:** `hand_landmarker.task` (float16 ≈ 7.5 MB) — downloaded automatically on first run.
 
 ---
 
@@ -161,13 +209,15 @@ The system is designed to be:
 ```
 hand_gesture_control/
 │
-├── gesture_controller.py   # Main application entry point
-├── requirements.txt        # Python dependency list
-├── .gitignore              # Excludes model file, captured media, caches
+├── gesture_controller.py   # Main application (v2.0)
+├── config.json             # All tunable parameters
+├── requirements.txt        # Python dependencies
+├── .gitignore              # Excludes model, captured media, caches
+├── LICENSE                 # MIT
 └── README.md               # This file
 ```
 
-> **Note:** `hand_landmarker.task` is **not committed** (it is in `.gitignore`). It is downloaded automatically to the project directory on the first run.
+> `hand_landmarker.task` is excluded from git (large binary). It auto-downloads on first run.
 
 ---
 
@@ -177,19 +227,19 @@ hand_gesture_control/
 
 | Requirement | Notes |
 |---|---|
-| **Python 3.11 or 3.12** | Python 3.13 is supported. Tested on 3.11+. |
-| **Webcam** | Built-in laptop webcam works perfectly. |
-| **Windows 10 / 11** | Required for brightness & OS integrations. |
-| **Git** | For cloning the repository. |
+| **Python 3.11 / 3.12 / 3.13** | Tested on all three |
+| **Webcam** | Built-in laptop webcam works perfectly |
+| **Windows 10 / 11** | Required for Win32 shortcuts |
+| **Git** | To clone the repo |
 
-### Step 1 — Clone the Repository
+### Step 1 — Clone
 
 ```bash
 git clone https://github.com/labonysur-cloud/hand_gesture_control.git
 cd hand_gesture_control
 ```
 
-### Step 2 — (Recommended) Create a Virtual Environment
+### Step 2 — Virtual Environment (Recommended)
 
 ```bash
 python -m venv venv
@@ -202,8 +252,6 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-This installs: `opencv-python`, `mediapipe`, `pyautogui`, `numpy`, `screen-brightness-control`.
-
 ---
 
 ## ▶️ Running the Controller
@@ -212,11 +260,37 @@ This installs: `opencv-python`, `mediapipe`, `pyautogui`, `numpy`, `screen-brigh
 python gesture_controller.py
 ```
 
-**On the first run**, the script will automatically download `hand_landmarker.task` (~7.5 MB) from Google's servers. This happens only once.
+On **first run** the script downloads `hand_landmarker.task` (~7.5 MB) automatically — this is a one-time step.
 
-A **camera preview window** will open titled `"Hand Gesture Controller"`. Hold your hand in front of the camera to start controlling your PC.
+A **camera preview window** titled `Hand Gesture Controller | Q = Quit` will open.  
+Hold your hand in front of the camera to begin controlling your PC.  
+Press **`Q`** inside the preview window to exit cleanly.
 
-**Press `Q`** inside the preview window at any time to exit cleanly.
+---
+
+## 🎛️ Configuration (`config.json`)
+
+All tuning is done in `config.json` — no code editing needed:
+
+```jsonc
+{
+  "smoothening": 7,            // Cursor smoothing  (higher = smoother/slower)
+  "click_distance": 35,        // Pinch threshold in pixels
+  "double_click_window": 0.4,  // Seconds between two pinches → double click
+  "action_cooldown": 1.8,      // Seconds between launcher gestures
+  "scroll_sensitivity": 300,   // Scroll speed multiplier
+  "volume_sensitivity": 0.035, // Hand travel per volume step
+  "brightness_sensitivity": 0.04,
+  "hold_frames": 18,           // Frames to hold a launcher pose (~0.6s @30fps)
+  "drag_move_threshold": 2.0,  // Pixels moved to register as drag
+  "swipe_threshold": 0.18,     // Horizontal swipe sensitivity (0–1)
+  "swipe_vertical_threshold": 0.15,
+  "webcam_width": 1280,
+  "webcam_height": 720,
+  "active_zone_margin": 0.15,  // Dead-zone margin around frame edge
+  "camera_index": 0            // 0 = built-in webcam
+}
+```
 
 ---
 
@@ -224,83 +298,72 @@ A **camera preview window** will open titled `"Hand Gesture Controller"`. Hold y
 
 ### 1. Hand Landmark Detection (MediaPipe Tasks API)
 
-The script uses the **MediaPipe Tasks API** (the modern, Python 3.11+ compatible API), not the deprecated `mp.solutions` API. The `HandLandmarker` model outputs **21 normalized 3D landmarks** per hand, where each coordinate `(x, y, z)` is normalized to `[0.0, 1.0]` relative to the frame dimensions.
+Uses the modern `HandLandmarker` Tasks API — compatible with Python 3.11+. Outputs **21 normalized 3D landmarks** `(x, y, z)` where values are in `[0.0, 1.0]` relative to the frame.
 
 ```
-Key Landmark Indices:
-  0  = Wrist
-  4  = Thumb tip
-  8  = Index finger tip
-  12 = Middle finger tip
-  16 = Ring finger tip
-  20 = Pinky tip
-  17 = Pinky MCP (base knuckle)
+Key landmarks:
+  0 = Wrist          4 = Thumb tip
+  8 = Index tip     12 = Middle tip
+ 16 = Ring tip      20 = Pinky tip
+  6 = Index PIP     10 = Middle PIP
 ```
 
-### 2. Finger Status Detection (`get_finger_status`)
+### 2. Angle-Based Finger Detection
 
-Each finger is independently classified as **up** or **down**:
+Each finger's bend is measured at the **PIP joint** using the angle between the tip, PIP, and MCP:
 
-- **Thumb:** Compares the Euclidean distance from the thumb tip (`#4`) to the pinky base (`#17`) against the distance from the thumb MCP (`#2`) to the pinky base (`#17`). If the tip is farther away, the thumb is extended.
-- **Other fingers (Index, Middle, Ring, Pinky):** Compares the Y-coordinate of the tip landmark vs. the PIP (Proximal Interphalangeal) joint. Since Y increases downward, a tip `y < pip y` means the finger is pointing upward (extended).
+```python
+angle = degrees( acos( dot(tip-pip, mcp-pip) / (|tip-pip| × |mcp-pip|) ) )
+extended = angle > 155  # < 155° = bent finger
+```
 
-### 3. Mouse Control & Exponential Smoothing
+This is far more robust than simple Y-coordinate comparison, especially when the hand is tilted.
 
-The active tracking zone is defined as the **central 70% of the frame** (15% margin on each side). The index fingertip position within this zone is linearly mapped to the full screen resolution.
+### 3. Exponential Cursor Smoothing
 
-Raw pixel positions are smoothed using exponential interpolation:
 ```python
 clocX = plocX + (target_x - plocX) / SMOOTHENING
 ```
-Where `SMOOTHENING = 7`. Higher values give smoother but slower cursor response.
 
-### 4. Click Detection via Pinch Distance
+A smoothing factor of 7 removes ~85% of jitter per frame while maintaining sub-100ms response.
 
-A **left click** is triggered when the Euclidean pixel distance between the thumb tip (`#4`) and index tip (`#8`) falls below `CLICK_DIST = 35` pixels.
+### 4. Drag & Drop
 
-**Double-click** is detected by tracking the time between two successive pinch-down events. If the gap is less than `DOUBLE_CLICK_WINDOW = 0.4s`, a `doubleClick()` is fired instead.
+Mouse state machine:
+- **Pinch down** → `pyautogui.mouseDown()`
+- **Pinch held + hand moving** → `pyautogui.moveTo()` continuously
+- **Pinch released** → `pyautogui.mouseUp()`
 
-A `was_pinching` boolean prevents repeated clicks from a single sustained pinch.
+A `was_pinching` flag prevents repeated `mouseDown` calls during a sustained hold.
 
-### 5. Swipe Detection for Browser Navigation
+### 5. Stability Detector (Scroll vs Screenshot)
 
-The last `MAX_POSITIONS = 15` wrist coordinates `(x, y)` are stored in a circular buffer. The horizontal displacement `Δx = positions[-1].x - positions[0].x` is computed. If `|Δx| > 0.18` (18% of frame width), a LEFT or RIGHT swipe is fired.
-
-### 6. Hold-to-Activate Gesture Timer
-
-To prevent accidental app launches, launcher gestures (File Explorer, Calculator, etc.) require the same pose to be held for `HOLD_FRAMES = 18` consecutive frames (≈ 0.6 seconds at 30 fps).
-
-A real-time **yellow progress bar** is rendered at the bottom of the preview window while a hold gesture is building up, giving immediate visual feedback.
+The same two-finger (Index + Middle) gesture triggers **scroll** when moving and **screenshot** when stationary:
 
 ```python
-gesture_hold_count += 1
-if gesture_hold_count == HOLD_FRAMES:
-    # Trigger action — fires exactly once per hold
+def hand_stable(positions, n=8, threshold=0.012):
+    xs = [p[0] for p in positions[-n:]]
+    ys = [p[1] for p in positions[-n:]]
+    return max(xs)-min(xs) < threshold and max(ys)-min(ys) < threshold
 ```
 
-### 7. Video Recording & Photo Capture
+### 6. Multi-Direction Swipe
 
-Since the gesture controller already holds exclusive access to the webcam, it uses **OpenCV's `VideoWriter`** to record directly from the same webcam feed — no need to open the Windows Camera app. Clean frames (without the skeleton overlay) are written to `~/Pictures` in AVI format.
-
-### 8. HUD Overlay
-
-A semi-transparent status banner is blended onto the frame using `cv2.addWeighted()` and displayed for a configurable duration, providing instant feedback without cluttering the view.
-
----
-
-## 🎛️ Tuning & Configuration
-
-All tunable parameters are at the top of `gesture_controller.py`:
-
-```python
-SMOOTHENING         = 7      # Mouse smoothing (higher = smoother/slower)
-CLICK_DIST          = 35     # Pinch distance threshold (pixels)
-DOUBLE_CLICK_WINDOW = 0.4    # Seconds between two pinches for double-click
-ACTION_COOLDOWN     = 1.8    # Seconds between app launches
-SCROLL_SENSITIVITY  = 3      # Scroll speed multiplier
-VOLUME_SENSITIVITY  = 0.04   # Hand movement required per volume step
-HOLD_FRAMES         = 18     # Frames to hold a launcher pose (~0.6s @30fps)
+The wrist position history (last 18 frames) is analyzed for dominant direction:
 ```
+dx = positions[-1].x - positions[0].x
+dy = positions[-1].y - positions[0].y
+if |dx| > |dy|  → horizontal swipe (browser back/forward)
+if |dy| > |dx|  → vertical swipe   (show desktop / virtual desktop)
+```
+
+### 7. Hold-to-Activate Timer
+
+All app launchers require `HOLD_FRAMES` consecutive identical detections — preventing the single accidental-pose problem entirely. The hold count resets the instant the pose changes.
+
+### 8. Pause Mode
+
+A fist held for `HOLD_FRAMES × 2` frames toggles a global `is_paused` flag. While paused, all gesture processing is skipped; only the fist-hold is monitored to resume.
 
 ---
 
@@ -308,25 +371,28 @@ HOLD_FRAMES         = 18     # Frames to hold a launcher pose (~0.6s @30fps)
 
 | Problem | Solution |
 |---|---|
-| **`AttributeError: module 'mediapipe' has no attribute 'solutions'`** | You are using MediaPipe 0.10+. This project uses the modern Tasks API — ensure you are running the latest `gesture_controller.py`. |
-| **Webcam window does not open** | Another application (Teams, Zoom, etc.) may be using the camera. Close them and retry. |
-| **File Explorer keeps opening randomly** | The "Thumbs Up" detection is strict — your thumb tip must point clearly upward. Try making the gesture more deliberate. |
-| **Brightness control not working** | Some external monitors cannot be software-controlled via WMI. Works best on built-in laptop displays. |
-| **Cursor is too jittery** | Increase `SMOOTHENING` from `7` to `10` or `12`. |
-| **Gestures trigger too easily** | Increase `HOLD_FRAMES` (e.g., from `18` to `25`) and `ACTION_COOLDOWN` (e.g., from `1.8` to `2.5`). |
-| **UnicodeEncodeError in terminal** | The script sets UTF-8 stdout automatically. If issues persist, run: `set PYTHONIOENCODING=utf-8` before launching. |
+| **`AttributeError: module 'mediapipe' has no attribute 'solutions'`** | MediaPipe 0.10+ dropped the old API. This project uses Tasks API — you're on the right version. |
+| **Camera window doesn't open** | Close other apps using the webcam (Teams, Zoom, etc.) |
+| **File Explorer keeps opening** | The thumb must point **clearly upward**. The strict angle check (`lm[4].y < lm[3].y - 0.05`) prevents accidental triggers. |
+| **Cursor is too jittery** | Increase `smoothening` in `config.json` (try 10–14) |
+| **Gestures trigger too easily** | Increase `hold_frames` (try 25–30) and `action_cooldown` (try 2.5) |
+| **Scroll too fast/slow** | Adjust `scroll_sensitivity` in `config.json` |
+| **Brightness not working** | Only works on built-in laptop displays via WMI. External monitors typically don't support software brightness. |
+| **Drag not working** | Ensure you hold the pinch for at least one frame before moving. |
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] GUI configuration panel for gesture sensitivity
-- [ ] Custom gesture-to-action mapping (user-defined)
 - [ ] Two-hand support (one hand mouse, other hand shortcuts)
-- [ ] Zoom in/out with pinch gesture (two-handed)
-- [ ] Drag-and-drop support
-- [ ] Support for Linux (X11/Wayland)
+- [ ] Zoom in/out with two-hand pinch
+- [ ] Custom gesture-to-action mapping via `config.json`
+- [ ] Linux support (X11/Wayland via `xdotool`)
+- [ ] macOS support
+- [ ] GUI configuration panel
+- [ ] Hand gesture training for custom poses (MediaPipe GestureRecognizer)
 - [ ] Multi-monitor cursor mapping
+- [ ] Start Menu gesture
 
 ---
 
@@ -340,6 +406,6 @@ This project is licensed under the **MIT License** — free to use, modify, and 
 
 **Made with ❤️ | Powered by Google MediaPipe & OpenCV**
 
-⭐ Star this repo if you found it useful!
+⭐ **Star this repo if you found it useful!**
 
 </div>
