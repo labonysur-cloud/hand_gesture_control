@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.manifest
+*.spec
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Project artifacts
+*.avi
+*.jpg
+*.png
+screenshot_*.png
+photo_*.jpg
+video_*.avi
+
+# MediaPipe model (large binary – users download automatically on first run)
+hand_landmarker.task
