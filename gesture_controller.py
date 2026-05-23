@@ -582,6 +582,35 @@ while cap.isOpened():
                 last_action_time = now
 
         # ══════════════════════════════════════════════════════
+        #  MODE  –  MIDDLE FINGER  → QUIT  (hold ~0.6s)
+        # ══════════════════════════════════════════════════════
+        elif middle and not index and not ring and not pinky and not thumb:
+            set_mode("!! QUIT !!", (0, 0, 220))
+            # Show a big red warning while holding
+            fh2, fw2 = frame.shape[:2]
+            ovl2 = frame.copy()
+            cv2.rectangle(ovl2, (0, 0), (fw2, fh2), (0, 0, 180), cv2.FILLED)
+            cv2.addWeighted(ovl2, 0.25, frame, 0.75, 0, frame)
+            remaining = HOLD_FRAMES - hold_count
+            cv2.putText(frame,
+                        f"QUITTING IN {max(0, remaining)} frames ...",
+                        (int(fw2 * 0.08), int(fh2 * 0.5)),
+                        cv2.FONT_HERSHEY_DUPLEX, 1.3, (0, 0, 255), 3)
+
+            if check_hold("middle_finger_quit"):
+                set_hud("Bye! Controller stopped.", (0, 0, 255), 2.0)
+                # Cleanup before exit
+                if is_dragging:
+                    pyautogui.mouseUp()
+                if video_writer:
+                    video_writer.release()
+                cap.release()
+                cv2.destroyAllWindows()
+                print("[GESTURE] Middle finger detected – controller quit.")
+                import sys
+                sys.exit(0)
+
+        # ══════════════════════════════════════════════════════
         #  MODE 8 – FIST  (0 fingers → play/pause OR pause gesture)
         # ══════════════════════════════════════════════════════
         elif num_up == 0:
