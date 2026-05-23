@@ -127,6 +127,15 @@ video_writer         = None
 # Mute state
 is_muted             = False
 
+# Close-App pull-back gesture state machine
+# Phases: "IDLE" -> "READY" (fist held) -> "PULL" (hand shrinks back) -> "IDLE"
+close_app_phase      = "IDLE"   # IDLE | READY
+close_app_ready_time = 0.0       # when we entered READY
+span_at_ready        = 0.0       # hand width (px) when READY was entered
+span_history         = []        # rolling list of recent hand widths
+SPAN_SHRINK_RATIO    = 0.80      # span must drop to 80% of ready-span to fire
+PULL_TIMEOUT         = 3.0       # seconds to attempt pull before giving up
+
 # Gestures are globally paused
 is_paused            = False
 
@@ -611,14 +620,70 @@ while cap.isOpened():
                 sys.exit(0)
 
         # ══════════════════════════════════════════════════════
-        #  MODE 8 – FIST  (0 fingers → play/pause OR pause gesture)
+        #  MODE 8 – FIST
+        #  Phase 1: hold fist still  → enter PULL MODE
+        #  Phase 2: pull hand back   → Alt+F4 (close active app)
+        #  If no pull within timeout → play/pause fallback
         # ══════════════════════════════════════════════════════
         elif num_up == 0:
-            set_mode("FIST", (255,0,200))
-            if check_hold("fist") and now-last_action_time > ACTION_COOLDOWN:
-                pyautogui.press('playpause')
-                set_hud("Play / Pause", (255,0,200))
-                last_action_time = now
+            # Measure current hand "width" as distance between
+            # index MCP (#5) and pinky MCP (#17) in pixels
+            cur_span = px_dist(lm[5], lm[17], fw, fh)
+            span_history.append(cur_span)
+            if len(span_history) > 12:
+                span_history.pop(0)
+
+            # ── Phase transition: IDLE → READY ───────────────
+            if close_app_phase == "IDLE":
+                set_mode("FIST", (255, 0, 200))
+                if check_hold("fist") and hand_stable(hand_positions, n=10, threshold=0.015):
+                    close_app_phase      = "READY"
+                    close_app_ready_time = now
+                    span_at_ready        = cur_span
+                    set_hud("READY  –  Now pull your hand back!", (0, 220, 255), 3.0)
+
+            # ── Phase: READY – watching for pull-back ─────────
+            elif close_app_phase == "READY":
+                set_mode("PULL BACK!", (0, 200, 255))
+                elapsed = now - close_app_ready_time
+
+                # Draw animated green ring around wrist to signal readiness
+                wx = int(lm[0].x * fw)
+                wy = int(lm[0].y * fh)
+                radius = int(px_dist(lm[0], lm[9], fw, fh) * 1.3)
+                pulse  = int(5 * abs(math.sin(now * 6)))        # pulsing width
+                cv2.circle(frame, (wx, wy), radius, (0, 255, 120), 3 + pulse)
+                cv2.putText(frame, "Pull back to CLOSE APP",
+                            (int(fw * 0.08), int(fh * 0.12)),
+                            cv2.FONT_HERSHEY_DUPLEX, 0.9, (0, 255, 120), 2)
+
+                # Smooth the span to reduce noise
+                avg_span = sum(span_history) / len(span_history) if span_history else cur_span
+
+                # ── Pull detected: hand shrank (moved back) ───
+                if avg_span < span_at_ready * SPAN_SHRINK_RATIO:
+                    pyautogui.hotkey('alt', 'f4')
+                    set_hud("[X] Application Closed!", (0, 0, 255), 2.0)
+                    print("[GESTURE] Pull-back detected – Alt+F4 sent.")
+                    close_app_phase = "IDLE"
+                    span_history.clear()
+                    last_action_time = now
+                    reset_hold()
+
+                # ── Timeout: no pull → play/pause fallback ────
+                elif elapsed > PULL_TIMEOUT:
+                    pyautogui.press('playpause')
+                    set_hud("Play / Pause  (pull timed out)", (255, 0, 200))
+                    close_app_phase = "IDLE"
+                    span_history.clear()
+                    last_action_time = now
+                    reset_hold()
+
+            # Reset if fist is released mid-flow
+            if num_up != 0 and close_app_phase == "READY":
+                close_app_phase = "IDLE"
+                span_history.clear()
+                reset_hold()
 
         # ══════════════════════════════════════════════════════
         #  MODE 9 – OPEN PALM  (all 5 = swipe gestures)
